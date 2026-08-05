@@ -1,23 +1,37 @@
-
 #include "Monitor.h"
-#include <iostream>
-#include <thread>
-#include <chrono>
 
-int main(){
-    Monitor m;
-    m.start();
-    for(int i=0;i<30;i++){
-        {
-            std::lock_guard<std::mutex> l(gMutex);
-            std::cout<<"CPU: "<<gInfo.cpu<<"%  "
-                     <<"MEM: "<<gInfo.mem<<"%  "
-                     <<"DISK: "<<gInfo.disk<<"%  "
-                     <<"RX: "<<gInfo.rxKB<<" KB  "
-                     <<"TX: "<<gInfo.txKB<<" KB\n";
-        }
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+#include <chrono>
+#include <iostream>
+#include <mutex>
+#include <thread>
+
+int main()
+{
+    Monitor monitor;
+
+    // Start monitoring threads
+    monitor.start();
+
+    // Wait for the first sample to be collected
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    // Print collected statistics
+    {
+        std::lock_guard<std::mutex> lock(gMutex);
+
+        std::cout << "=================================\n";
+        std::cout << "          SysMon Lite\n";
+        std::cout << "=================================\n";
+        std::cout << "CPU Usage    : " << gInfo.cpu << " %\n";
+        std::cout << "Memory Usage : " << gInfo.mem << " %\n";
+        std::cout << "Disk Usage   : " << gInfo.disk << " %\n";
+        std::cout << "RX           : " << gInfo.rxKB << " KB\n";
+        std::cout << "TX           : " << gInfo.txKB << " KB\n";
+        std::cout << "=================================\n";
     }
-    m.stop();
+
+    // Stop monitoring
+    monitor.stop();
+
     return 0;
 }
