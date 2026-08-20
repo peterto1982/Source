@@ -1,0 +1,40 @@
+stages:
+  - build
+  - test
+
+variables:
+  BUILD_DIR: "build"
+
+build:
+  stage: build
+  image: gcc:14
+  before_script:
+    - apt-get update
+    - apt-get install -y cmake
+  script:
+    - echo "=== Environment ==="
+    - cmake --version
+    - g++ --version
+
+    - echo "=== CMake configure ==="
+    - cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
+
+    - echo "=== Build ==="
+    - cmake --build "$BUILD_DIR" --parallel
+
+    - echo "=== Build output ==="
+    - ls -lh "$BUILD_DIR"
+  artifacts:
+    paths:
+      - build/sysmon
+    expire_in: 1 week
+
+test:
+  stage: test
+  image: gcc:14
+  script:
+    - echo "=== Test stage ==="
+    - test -x build/sysmon
+    - echo "Executable exists and is executable"
+    - echo "=== Running sysmon ==="
+    - ./build/sysmon
